@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 import Map, { Marker, Popup } from "react-map-gl";
-import { FiStar } from "react-icons/fi";
+import { FiStar, FiMapPin } from "react-icons/fi";
 import api from "../../services/api";
 import "./styles.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const MapComponent = () => {
-  const [showPopup, setShowPopup] = useState(true);
+
   const MAPBOX_TOKEN = "pk.eyJ1IjoiaW1jbGF1ZHMiLCJhIjoiY2t6bGx0Zmh6MmVmbDMxb2JkM3JkeTcycyJ9.n3x6XAh70HZ2GtbzIVpMCQ";
   
   const [Pins, setPins] = useState([]);
+  const [currentPinID, setCurrentPinID] = useState('');
+
+  console.log(currentPinID);
 
   useEffect(() => {
     const tokenData = async () => {
@@ -25,11 +28,14 @@ const MapComponent = () => {
         initialViewState={{
           latitude: 37.8,
           longitude: -122.4,
-          zoom: 14,
+          zoom: 3,
         }}
         style={{ width: "90%", height: "100vh" }}
         mapStyle="mapbox://styles/mapbox/streets-v9"
         mapboxAccessToken={MAPBOX_TOKEN}
+        onDblClick={(ev) => {
+          const [lat, lon] = ev.lngLat;
+        }}
       >
         {Pins.map((pin, index) => {
           let stars = Array(pin.rate).fill(<FiStar color="#EBED66" fill="#FBFF26" size={16} />)
@@ -38,10 +44,20 @@ const MapComponent = () => {
               <Marker
                 longitude={pin.longitude}
                 latitude={pin.latitude}
-                color="#3FB1CE"
-              />
-              {showPopup && (
-              <Popup longitude={pin.longitude} latitude={pin.latitude} anchor="right">
+              >
+                <FiMapPin onClick={() => setCurrentPinID(pin._id)} 
+                style={{width: 32, height: 32}} 
+                fill="#3FB1CE"
+                color="#000"
+                />
+              </Marker>
+              {pin._id === currentPinID && (
+              <Popup 
+              longitude={pin.longitude} 
+              latitude={pin.latitude} 
+              anchor="right"
+              onClose={() => setCurrentPinID('')}
+              >
                 <div className="userReview">
                   <div className="userbox">
                     <div className="author">
@@ -70,8 +86,6 @@ const MapComponent = () => {
               </Popup>
             )}
             </div>
-
-            
           );
         })}
       </Map>
